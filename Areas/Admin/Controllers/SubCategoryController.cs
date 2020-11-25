@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Spice.Data;
+using Spice.Models;
 using Spice.Models.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,10 @@ namespace Spice.Areas.Admin
     public class SubCategoryController : Controller
     {
         private readonly ApplicationDbContext _db;
+
+        //Error Message
+        [TempData]
+        public string StatusMessage { get; set; }
 
         public SubCategoryController(ApplicationDbContext db)
         {
@@ -51,7 +57,8 @@ namespace Spice.Areas.Admin
 
                 if(doesSubCategoryExists.Count() > 0)
                 {
-                    //Error
+                    //Error message
+                    StatusMessage = "Error : Sub Category exists under " + doesSubCategoryExists.First().Category.Name + " category. Please use another name.";
                 }
                 else
                 {
@@ -66,10 +73,26 @@ namespace Spice.Areas.Admin
             {
                 CategoryList = await _db.Category.ToListAsync(),
                 SubCategory = model.SubCategory,
-                SubCategoryList = await _db.SubCategory.OrderBy(z => z.Name).Select(z => z.Name).ToListAsync()
+                SubCategoryList = await _db.SubCategory.OrderBy(z => z.Name).Select(z => z.Name).ToListAsync(),
+                StatusMessage = StatusMessage
             };
 
             return View(modelVM);
         }
+
+        //GET SUBCATEGORY
+        [ActionName("GetSubCategory")]
+        public async Task<IActionResult> GetSubCategory( int id)
+        {
+            List<SubCategory> subCategories = new List<SubCategory>();
+
+            subCategories = await (from subCategory in _db.SubCategory
+                             where subCategory.CategoryId == id
+                             select subCategory).ToListAsync();
+
+            return Json(new SelectList(subCategories, "Id", "Name"));
+        }
+
+
     }
 }
