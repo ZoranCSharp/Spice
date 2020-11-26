@@ -128,7 +128,7 @@ namespace Spice.Areas.Admin
         //POST - EDIT
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(SubCategoryAndCategoryViewModel model, int id)
+        public async Task<IActionResult> Edit(SubCategoryAndCategoryViewModel model)
         {
             if (ModelState.IsValid)
             {
@@ -141,7 +141,7 @@ namespace Spice.Areas.Admin
                 }
                 else
                 {
-                    var subCategoryFromDatabase = await _db.SubCategory.FindAsync(id);
+                    var subCategoryFromDatabase = await _db.SubCategory.FindAsync(model.SubCategory.Id);
                     subCategoryFromDatabase.Name = model.SubCategory.Name;
  
                     await _db.SaveChangesAsync();
@@ -162,6 +162,96 @@ namespace Spice.Areas.Admin
             return View(modelVM);
         }
 
+        //GET - DELETE
+        public async Task<IActionResult> Delete(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var subCategory = await _db.SubCategory.FirstOrDefaultAsync(z => z.Id == id);
+
+                if (subCategory == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    SubCategoryAndCategoryViewModel modelVM = new SubCategoryAndCategoryViewModel()
+                    {
+                        CategoryList = await _db.Category.ToListAsync(),
+                        SubCategory = subCategory,
+                        SubCategoryList = await _db.SubCategory.OrderBy(z => z.Name).Select(z => z.Name).ToListAsync()
+
+                    };
+
+                    return View(modelVM);
+                }
+
+
+            }
+           
+        }
+
+        //POST DELETE
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int? id)
+        {
+            if(id == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var subCategory = await _db.SubCategory.FirstOrDefaultAsync(z => z.Id == id);
+
+                if (subCategory == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    _db.Remove(subCategory);
+                    await _db.SaveChangesAsync();
+
+                    return RedirectToAction(nameof(Index));
+                }
+
+            }
+
+        }
+
+        //GET - DETAILS
+        public async Task<IActionResult> Details(int? id)
+        {
+            if(id == null)
+            {
+                return NotFound();
+            }
+            else
+            {
+                var subCategory = await _db.SubCategory.FirstOrDefaultAsync(z => z.Id == id);
+
+                if(subCategory == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    SubCategoryAndCategoryViewModel modelVM = new SubCategoryAndCategoryViewModel()
+                    {
+                        CategoryList = await _db.Category.ToListAsync(),
+                        SubCategory = subCategory,
+                        SubCategoryList = await _db.SubCategory.OrderBy(z=>z.Name).Select(z=>z.Name).ToListAsync()
+                    };
+
+                    return View(modelVM);
+                }
+            }
+        }
 
     }
 }
