@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Spice.Data;
+using Spice.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,11 +15,19 @@ namespace Spice.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _db;
         private readonly IWebHostEnvironment _hostingEnvironment;
+         
+        [BindProperty]
+        public MenuItemViewModel MenuItemVM { get; set; }
 
         public MenuItemController(ApplicationDbContext db, IWebHostEnvironment hostingEnvironment)
         {
             _db = db;
             _hostingEnvironment = hostingEnvironment;
+            MenuItemVM = new MenuItemViewModel()
+            {
+                Category = _db.Category,
+                MenuItem = new Models.MenuItem()
+            };
         }
 
         public async Task<IActionResult> Index()
@@ -27,5 +36,13 @@ namespace Spice.Areas.Admin.Controllers
 
             return View(menuItems);
         }
+
+        //GET CREATE
+        public IActionResult Create()
+        {
+            return View(MenuItemVM);
+        }
+
+
     }
 }
